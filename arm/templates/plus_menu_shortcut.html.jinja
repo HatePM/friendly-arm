@@ -24,54 +24,24 @@
   <script type="text/javascript">
     (function () {
       let amis = amisRequire('amis/embed');
-      let amisSchema = {{ amis_schema| tojson
-    }};
-    let amisScoped = amis.embed('#root', amisSchema);
-      }) ();
+      let amisSchema = {{ amis_schema| tojson }};
+      let amisScoped = amis.embed('#root', amisSchema);
+    })();
   </script>
   <script type="text/javascript">
     (function () {
-      const cardSchema = `{
-  "header": {
-      "title": {
-          "tag": "plain_text",
-          "content": "This is Header"
-      },
-      "template": "purple"
-  },
-  "elements": [{
-      "tag": "div",
-      "text": {
-          "tag": "plain_text",
-          "content": "测试用例：A:1-5"
-      }
-  }]
-}`;
       const urlObj = new URL(location.href);
-      // 注意：带 query
-      const pageUrl = encodeURIComponent(
-        urlObj.origin + urlObj.pathname + urlObj.search
-      );
-      // 获取签名。注意：这里的请求地址，请换成自己的后端接口地址
+      const pageUrl = encodeURIComponent(urlObj.origin + urlObj.pathname + urlObj.search);
       const getSignPromise = window.fetch(`/api/lark_sign?url=${pageUrl}`);
       getSignPromise
         .then((res) => res.json())
-        .then((res) => {
-          // 换成自己的 appId
-          return Object.assign(
-            {
-              appId: "{{ feishu_appid }}",
-            },
-            res.data
-          );
-        })
         .then((res) => {
           if (window.h5sdk) {
             // 接口鉴权
             window.h5sdk.config({
               // 下面这 4 个字段，都需要从生成签名的后端接口返回
-              appId: res.appId,
-              timestamp: +res.timestamp,
+              appId: res.appid,
+              timestamp: res.timestamp,
               nonceStr: res.noncestr,
               signature: res.signature,
               jsApiList: [
@@ -79,11 +49,10 @@
                 "getTriggerContext",
                 "sendMessageCard",
               ],
-              onSuccess: (res) =>
-                console.log("config success", JSON.stringify(res)),
-            });
-            window.h5sdk.error((err) => {
-              console.error("config error", JSON.stringify(err));
+              //成功回调
+              onSuccess: (res) => {console.log(`config success`);},
+              //失败回调
+              onFail: (err) => {console.log(`config failed: ${JSON.stringify(err)}`);},
             });
             window.h5sdk.ready(() => {
               // 从页面 URL 中获取 triggerCode
@@ -95,29 +64,36 @@
                 return;
               }
               launchQuery = JSON.parse(launchQuery);
-              const triggerCode = launchQuery.trigger_id;
-              /**
-               * 使用方式 一
-               * 通过 triggerCode 字段指定会话
-               */
-              tt.sendMessageCard({
-                triggerCode: triggerCode,
-                cardContent: {
-                  msg_type: 'interactive',
-                  update_multi: false,
-                  card: JSON.parse(cardSchema),
-                },
-                success(res) {
-                  console.log(res);
-                },
-                fail(res) {
-                  console.log(res);
-                },
-              });
+              const triggerCode = launchQuery.__trigger_id__;
             });
           }
         });
     })();
+      function sendFeishuMessage(text) {
+        // 从页面 URL 中获取 triggerCode
+        let launchQuery = new URLSearchParams(location.search).get("bdp_launch_query");
+        launchQuery = JSON.parse(launchQuery);
+        const triggerCode = launchQuery.__trigger_id__;
+        tt.sendMessageCard({
+          triggerCode: triggerCode,
+          cardContent: {
+            msg_type: 'interactive',
+            update_multi: false,
+            card: {
+              "elements": [{
+                "tag": "div",
+                "text": {
+                  "tag": "plain_text",
+                  "content": text,
+                }
+              }]
+            },
+          },
+          fail(res) {
+            console.log(res);
+          },
+        });
+      };
   </script>
 </body>
 

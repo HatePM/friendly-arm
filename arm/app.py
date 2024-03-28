@@ -68,7 +68,7 @@ def render_html(request: Request):
                 {
                     "type": "submit",
                     "label": "Magic🪄",
-                    "level": "light",
+                    "level": "dark",
                     "onEvent": {
                         "click": {
                             "actions": [
@@ -101,7 +101,23 @@ def render_html(request: Request):
                     "description": "如果对友善之臂的输出结果不满意，可以自由修改",
                 },
             ],
-            "actions": [],
+            "actions": [
+                {
+                    "label": "发送到聊天",
+                    "type": "button",
+                    "level": "primary",
+                    "onEvent": {
+                        "click": {
+                            "actions": [
+                                {
+                                    "actionType": "custom",
+                                    "script": "sendFeishuMessage(event.data.output);",
+                                }
+                            ]
+                        }
+                    },
+                },
+            ],
         },
     ]
     return Jinja2Templates(directory=TEMPLATE_DIR).TemplateResponse(
@@ -133,7 +149,6 @@ def get_lark_sign(url: str):
     # 对字符串做sha1加密，得到签名signature
     signature = hashlib.sha1(verify_str.encode("utf-8")).hexdigest()
     # 将鉴权所需参数返回给前端
-    print("signature", signature)
     return {
         "appid": FEISHU_APPID,
         "signature": signature,
