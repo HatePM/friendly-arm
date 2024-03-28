@@ -13,7 +13,7 @@
         "message": {
             "chat_id": "oc_c1d37c7bb85877040f0b34a50a8dc269",
             "chat_type": "group",
-            "content": '{"text":"你丫不是没时间参赛吗\\n怎么还参赛了\\n我们这项目不行呗？ 你这属于不团结上游"}',
+            "content": "{\"text\":\"你丫不是没时间参赛吗\\n怎么还参赛了\\n我们这项目不行呗？ 你这属于不团结上游\"}",
             "create_time": "1711596871172",
             "message_id": "om_aac5f946f97bd141b0b12fe4054dffcc",
             "message_type": "text",
