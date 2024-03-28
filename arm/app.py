@@ -22,6 +22,22 @@ def render_html(request: Request):
     amis_schema = [
         {
             "type": "form",
+            "title": "会员信息",
+            "wrapWithPanel": False,
+            "mode": "inline",
+            "body": [
+                {
+                    "type": "static-mapping",
+                    "label": "会员信息",
+                    "value": "内测",
+                    "map": {
+                        "内测": "<span class='label label-primary'>彩云内测用户</span> / ∞",
+                    },
+                },
+            ],
+        },
+        {
+            "type": "form",
             "title": "输入",
             "api": "/api/submit",
             "reload": "resultForm?level=${level}&output=${output}",
