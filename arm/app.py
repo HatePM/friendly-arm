@@ -68,7 +68,7 @@ def render_html(request: Request):
                 {
                     "type": "submit",
                     "label": "Magic🪄",
-                    "level": "dark",
+                    "level": "light",
                     "onEvent": {
                         "click": {
                             "actions": [
