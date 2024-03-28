@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>友善之臂</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1"
+    />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/amis/6.2.2/sdk.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/amis/6.2.2/helper.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/amis/6.2.2/iconfont.min.css" />
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico"/>
+  </head>
+  <body>
+    <div id="root" class="app-wrapper"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/amis/6.2.2/sdk.min.js"></script>
+    <script type="text/javascript">
+      (function () {
+        let amis = amisRequire('amis/embed');
+        let amisSchema = {{ amis_schema|tojson }};
+        let amisScoped = amis.embed('#root', amisSchema);
+      })();
+    </script>
+  </body>
+</html>
