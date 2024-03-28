@@ -9,8 +9,3 @@ OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 NONCE_STR = "13oEviLbrTo458A3NjrOwS70oTOXVOAm"
 
 TEMPLATE_DIR = pathlib.Path(__file__).absolute().parent / "templates"
-LEVEL_NAMES_MAP = {
-    "A": "<span class='label label-success'>如沐春风</span>",
-    "B": "<span class='label label-warning'>如水相安</span>",
-    "C": "<span class='label label-danger'>剑拔弩张</span>",
-}
