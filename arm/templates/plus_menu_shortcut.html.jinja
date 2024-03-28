@@ -28,7 +28,7 @@
     (function () {
       const urlObj = new URL(location.href);
       const pageUrl = encodeURIComponent(urlObj.origin + urlObj.pathname + urlObj.search);
-      const getSignPromise = window.fetch(`/api/lark_sign?url=${pageUrl}`);
+      const getSignPromise = window.fetch(`/plus_menu/api/lark_sign?url=${pageUrl}`);
       getSignPromise
         .then((res) => res.json())
         .then((res) => {

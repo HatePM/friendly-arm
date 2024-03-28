@@ -1,59 +1,87 @@
-import logging
+import time
 
 import httpx
+from pydantic import BaseModel
 
-# const
-# 开放接口 URI
-TENANT_ACCESS_TOKEN_URI = "/open-apis/auth/v3/tenant_access_token/internal"
-JSAPI_TICKET_URI = "/open-apis/jssdk/ticket/get"
+from arm.constants import FEISHU_APP_ID, FEISHU_APP_SECRET
 
 
-class Auth(object):
-    def __init__(self, feishu_host, app_id, app_secret):
-        self.feishu_host = feishu_host
+class TenantAccessTokenCache(BaseModel):
+    expired_at: int
+    token: str
+
+
+class JSSDKTicketCache(BaseModel):
+    expired_at: int
+    ticket: str
+
+
+class FeishuAuth(object):
+    def __init__(self, app_id, app_secret):
         self.app_id = app_id
         self.app_secret = app_secret
-        self.tenant_access_token = ""
+        self._tenant_access_token_cache = None
+        self._jssdk_ticket_cache = None
+        self.get_tenant_access_token()
+        self.get_jssdk_ticket()
 
-    def get_ticket(self):
-        # 获取jsapi_ticket，具体参考文档：https://open.feishu.cn/document/ukTMukTMukTM/uYTM5UjL2ETO14iNxkTN/h5_js_sdk/authorization
-        self.authorize_tenant_access_token()
-        url = "{}{}".format(self.feishu_host, JSAPI_TICKET_URI)
+    def _get_tenant_access_token(self):
+        url = "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal"
+        response = httpx.post(
+            url,
+            json={"app_id": self.app_id, "app_secret": self.app_secret},
+        )
+        response.raise_for_status()
+        # {
+        #     "code": 0,
+        #     "msg": "ok",
+        #     "tenant_access_token": "t-caecc734c2e3328a62489fe0648c4b98779515d3",
+        #     "expire": 7200,
+        # }
+        return response.json()
+
+    def get_tenant_access_token(self) -> str:
+        now = int(time.time())
+        if (
+            self._tenant_access_token_cache
+            and self._tenant_access_token_cache.expired_at > now
+        ):
+            return self._tenant_access_token_cache.token
+        token_data = self._get_tenant_access_token()
+        self._tenant_access_token_cache = TenantAccessTokenCache(
+            expired_at=now + token_data["expire"] - 100,
+            token=token_data["tenant_access_token"],
+        )
+        return self._tenant_access_token_cache.token
+
+    def _get_jssdk_ticket(self):
+        url = "https://open.feishu.cn/open-apis/jssdk/ticket/get"
         headers = {
-            "Authorization": "Bearer " + self.tenant_access_token,
+            "Authorization": "Bearer " + self.get_tenant_access_token(),
             "Content-Type": "application/json",
         }
         resp = httpx.post(url=url, headers=headers)
-        Auth._check_error_response(resp)
-        return resp.json().get("data").get("ticket", "")
+        resp.raise_for_status()
+        # {
+        #     "code": 0,
+        #     "msg": "ok",
+        #     "data": {
+        #         "expire_in": 7200,
+        #         "ticket": "0560604568baf296731aa37f0c8ebe3e049c19d7",
+        #     },
+        # }
+        return resp.json()["data"]
 
-    def authorize_tenant_access_token(self):
-        # 获取tenant_access_token，基于开放平台能力实现，具体参考文档：https://open.feishu.cn/document/ukTMukTMukTM/ukDNz4SO0MjL5QzM/auth-v3/auth/tenant_access_token_internal
-        url = "{}{}".format(self.feishu_host, TENANT_ACCESS_TOKEN_URI)
-        req_body = {"app_id": self.app_id, "app_secret": self.app_secret}
-        response = httpx.post(url, json=req_body)
-        Auth._check_error_response(response)
-        self.tenant_access_token = response.json().get("tenant_access_token")
-
-    @staticmethod
-    def _check_error_response(resp):
-        # 检查响应体是否包含错误信息
-        if resp.status_code != 200:
-            raise resp.raise_for_status()
-        response_dict = resp.json()
-        code = response_dict.get("code", -1)
-        if code != 0:
-            logging.error(response_dict)
-            raise FeishuException(code=code, msg=response_dict.get("msg"))
+    def get_jssdk_ticket(self) -> str:
+        now = int(time.time())
+        if self._jssdk_ticket_cache and self._jssdk_ticket_cache.expired_at > now:
+            return self._jssdk_ticket_cache.ticket
+        ticket_data = self._get_jssdk_ticket()
+        self._jssdk_ticket_cache = JSSDKTicketCache(
+            expired_at=now + ticket_data["expire_in"] - 100,
+            ticket=ticket_data["ticket"],
+        )
+        return self._jssdk_ticket_cache.ticket
 
 
-class FeishuException(Exception):
-    # 处理并展示飞书侧返回的错误码和错误信息
-    def __init__(self, code=0, msg=None):
-        self.code = code
-        self.msg = msg
-
-    def __str__(self) -> str:
-        return "{}:{}".format(self.code, self.msg)
-
-    __repr__ = __str__
+FEISHU_AUTH = FeishuAuth(app_id=FEISHU_APP_ID, app_secret=FEISHU_APP_SECRET)

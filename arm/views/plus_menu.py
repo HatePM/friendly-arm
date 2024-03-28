@@ -6,8 +6,8 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import constr
 
-from arm.constants import FEISHU_APP_ID, FEISHU_APP_SECRET, NONCE_STR, TEMPLATE_DIR
-from arm.libs.feishu_auth import Auth
+from arm.constants import FEISHU_APP_ID, NONCE_STR, TEMPLATE_DIR
+from arm.libs.feishu_auth import FEISHU_AUTH
 from arm.libs.openai_rpc import evaluate_and_rewrite_text
 
 router = APIRouter()
@@ -35,7 +35,7 @@ def render_homepage(request: Request):
         {
             "type": "form",
             "title": "输入",
-            "api": "/api/submit",
+            "api": "/plus_menu/api/magic_writing",
             "reload": "resultForm?level=${level}&output=${output}",
             "autoFocus": True,
             "body": [
@@ -127,17 +127,12 @@ def magic_writing(text: constr(strip_whitespace=True) = Body(..., embed=True)):
 
 @router.get("/api/lark_sign")
 def generate_lark_sign(url: str):
-    auth = Auth("https://open.feishu.cn", FEISHU_APP_ID, FEISHU_APP_SECRET)
-    ticket = auth.get_ticket()
-    # 当前时间戳，毫秒级
-    timestamp = int(time.time()) * 1000
-    # 拼接成字符串
-    verify_str = "jsapi_ticket={}&noncestr={}&timestamp={}&url={}".format(
-        ticket, NONCE_STR, timestamp, url
+    ticket = FEISHU_AUTH.get_jssdk_ticket()
+    timestamp = int(time.time() * 1000)
+    verify_str = (
+        f"jsapi_ticket={ticket}&noncestr={NONCE_STR}&timestamp={timestamp}&url={url}"
     )
-    # 对字符串做sha1加密，得到签名signature
     signature = hashlib.sha1(verify_str.encode("utf-8")).hexdigest()
-    # 将鉴权所需参数返回给前端
     return {
         "appid": FEISHU_APP_ID,
         "signature": signature,
