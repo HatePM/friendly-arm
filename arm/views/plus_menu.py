@@ -115,7 +115,6 @@ def render_homepage(request: Request):
         context={
             "request": request,
             "amis_schema": amis_schema,
-            "feishu_appid": FEISHU_APP_ID,
         },
     )
 
