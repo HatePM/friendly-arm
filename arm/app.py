@@ -22,7 +22,6 @@ TEMPLATE_DIR = pathlib.Path(__file__).absolute().parent / "templates"
 
 @app.get("/", response_class=HTMLResponse)
 def render_html(request: Request):
-
     amis_schema = [
         {
             "type": "form",
