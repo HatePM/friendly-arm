@@ -1,10 +1,11 @@
-import os
 from typing import Literal, Tuple
 
 from openai import OpenAI
 from retry import retry
 
-OPENAI_CLIENT = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+from arm.constants import OPENAI_API_KEY
+
+OPENAI_CLIENT = OpenAI(api_key=OPENAI_API_KEY)
 
 PROMPT_OF_EVALUATION = """\
 请对用户输入文本的情感友善度按以下三个等级进行评估，并输出情感友善度等级。请只输出 A、B 或 C，不要包含其他文字。

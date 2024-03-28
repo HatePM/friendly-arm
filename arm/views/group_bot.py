@@ -8,7 +8,7 @@ from typing import TypedDict
 import httpx
 from fastapi import APIRouter, BackgroundTasks, Request
 
-from arm.rpc import evaluate_text_friendly_level, rewrite_to_friendly_text
+from arm.libs.openai_rpc import evaluate_text_friendly_level, rewrite_to_friendly_text
 
 router = APIRouter()
 
