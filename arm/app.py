@@ -6,11 +6,12 @@ from fastapi.templating import Jinja2Templates
 from pydantic import constr
 
 from arm.rpc import evaluate_and_rewrite_text
-from arm.webhook import router
+from arm.views.webhook import router
 
 app = FastAPI(title="FriendlyArm")
 
 app.include_router(router, prefix="/api/webhook")
+
 LEVEL_NAMES_MAP = {
     "A": "<span class='label label-success'>如沐春风</span>",
     "B": "<span class='label label-warning'>如水相安</span>",

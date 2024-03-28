@@ -58,7 +58,9 @@ def get_acccess_token() -> str:
 
 def delete_msg(msg_id: str):
     url = f"https://open.feishu.cn/open-apis/im/v1/messages/{msg_id}"
-    response = httpx.delete(url, headers={"Authorization": f"Bearer {get_acccess_token()}"})
+    response = httpx.delete(
+        url, headers={"Authorization": f"Bearer {get_acccess_token()}"}
+    )
     content = response.text
     print(content)
     return
@@ -93,7 +95,6 @@ def make_new_group(data: dict):
     print(body)
 
 
-
 def get_user_info(open_id: str):
     url = f"https://open.feishu.cn/open-apis/contact/v3/users/{open_id}"
     params = {
@@ -112,16 +113,16 @@ def get_user_info(open_id: str):
 def send_msg(data: dict, text: str):
     chat_id = data["event"]["message"]["chat_id"]
     url = "https://open.feishu.cn/open-apis/im/v1/messages"
-    params = {
-        "receive_id_type": "chat_id"
-    }
+    params = {"receive_id_type": "chat_id"}
     user_id = data["event"]["sender"]["sender_id"]["open_id"]
     user_name = get_user_info(user_id)["data"]["user"]["name"]
     body = {
         "receive_id": chat_id,
         "msg_type": "text",
-        "content": json.dumps({"text": f"{user_name}: {text}"}, ),
-        "uuid": str(uuid.uuid4())
+        "content": json.dumps(
+            {"text": f"{user_name}: {text}"},
+        ),
+        "uuid": str(uuid.uuid4()),
     }
     payload = json.dumps(body)
     print(payload)
@@ -140,6 +141,7 @@ def send_msg(data: dict, text: str):
 
 def evaluate_and_rewrite_msg(data: dict):
     import time
+
     start = time.time()
 
     # sender_id = data["event"]["sender"]["sender_id"]["open_id"]
