@@ -26,7 +26,6 @@ def render_html(request: Request):
             "api": "/api/submit",
             "reload": "resultForm?level=${level}&output=${output}",
             "autoFocus": True,
-            "actions": [{"type": "submit", "label": "Magic🪄", "level": "light"}],
             "body": [
                 {
                     "name": "text",
@@ -34,13 +33,30 @@ def render_html(request: Request):
                     "required": True,
                     "trimContents": True,
                     "showCounter": True,
+                    "minRows": 5,
                     "maxLength": 100,
                     "placeholder": "请在此输入你想说的话",
                 },
             ],
+            "actions": [
+                {
+                    "type": "submit",
+                    "label": "Magic🪄",
+                    "level": "light",
+                    "onEvent": {
+                        "click": {
+                            "actions": [
+                                {"actionType": "show", "componentId": "resultForm"}
+                            ]
+                        }
+                    },
+                }
+            ],
         },
         {
             "name": "resultForm",
+            "id": "resultForm",
+            "visible": False,
             "type": "form",
             "title": "输出",
             "body": [
@@ -55,7 +71,8 @@ def render_html(request: Request):
                     "name": "output",
                     "type": "textarea",
                     "trimContents": True,
-                    "description": "如果对友善之臂的输出结果不满意，可自由修改",
+                    "minRows": 5,
+                    "description": "如果对友善之臂的输出结果不满意，可以自由修改",
                 },
             ],
             "actions": [],
