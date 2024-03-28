@@ -1,10 +1,14 @@
+import hashlib
+import os
 import pathlib
+import time
 
 from fastapi import Body, FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import constr
 
+from arm.feishu_auth import Auth
 from arm.rpc import evaluate_and_rewrite_text
 from arm.views.webhook import router
 
@@ -18,6 +22,9 @@ LEVEL_NAMES_MAP = {
     "C": "<span class='label label-danger'>剑拔弩张</span>",
 }
 TEMPLATE_DIR = pathlib.Path(__file__).absolute().parent / "templates"
+FEISHU_APPID = os.environ["FEISHU_APP_ID"]
+FEISHU_APPSECRET = os.environ["FEISHU_APP_SECRET"]
+NONCE_STR = "13oEviLbrTo458A3NjrOwS70oTOXVOAm"
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -99,7 +106,11 @@ def render_html(request: Request):
     ]
     return Jinja2Templates(directory=TEMPLATE_DIR).TemplateResponse(
         name="plus_menu_shortcut.html.jinja",
-        context={"request": request, "amis_schema": amis_schema},
+        context={
+            "request": request,
+            "amis_schema": amis_schema,
+            "feishu_appid": FEISHU_APPID,
+        },
     )
 
 
@@ -107,3 +118,25 @@ def render_html(request: Request):
 def submit(text: constr(strip_whitespace=True) = Body(..., embed=True)):
     level, output = evaluate_and_rewrite_text(text)
     return {"level": level, "output": output}
+
+
+@app.get("/api/lark_sign")
+def get_lark_sign(url: str):
+    auth = Auth("https://open.feishu.cn", FEISHU_APPID, FEISHU_APPSECRET)
+    ticket = auth.get_ticket()
+    # 当前时间戳，毫秒级
+    timestamp = int(time.time()) * 1000
+    # 拼接成字符串
+    verify_str = "jsapi_ticket={}&noncestr={}&timestamp={}&url={}".format(
+        ticket, NONCE_STR, timestamp, url
+    )
+    # 对字符串做sha1加密，得到签名signature
+    signature = hashlib.sha1(verify_str.encode("utf-8")).hexdigest()
+    # 将鉴权所需参数返回给前端
+    print("signature", signature)
+    return {
+        "appid": FEISHU_APPID,
+        "signature": signature,
+        "noncestr": NONCE_STR,
+        "timestamp": timestamp,
+    }
