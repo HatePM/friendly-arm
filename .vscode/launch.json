@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "webapp",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "arm.app:app",
+                "--reload",
+                "--log-level",
+                "debug",
+                "--proxy-headers",
+                "--forwarded-allow-ips",
+                "*",
+            ],
+            "jinja": true,
+            "justMyCode": false
+        }
+    ]
+}

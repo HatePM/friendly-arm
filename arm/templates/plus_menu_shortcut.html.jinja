@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>友善之臂</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/amis/6.2.2/sdk.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/amis/6.2.2/helper.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/amis/6.2.2/iconfont.min.css" />
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
+</head>
+
+<body>
+  <div id="root" class="app-wrapper"></div>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/amis/6.2.2/sdk.min.js"></script>
+  <script type="text/javascript" src="https://lf1-cdn-tos.bytegoofy.com/goofy/lark/op/h5-js-sdk-1.5.26.js"></script>
+  <script type="text/javascript">
+    (function () {
+      let amis = amisRequire('amis/embed');
+      let amisSchema = {{ amis_schema| tojson }};
+      let amisScoped = amis.embed('#root', amisSchema);
+    })();
+  </script>
+  <script type="text/javascript">
+    (function () {
+      const urlObj = new URL(location.href);
+      const pageUrl = encodeURIComponent(urlObj.origin + urlObj.pathname + urlObj.search);
+      const getSignPromise = window.fetch(`/plus_menu/api/lark_sign?url=${pageUrl}`);
+      getSignPromise
+        .then((res) => res.json())
+        .then((res) => {
+          if (window.h5sdk) {
+            // 接口鉴权
+            window.h5sdk.config({
+              // 下面这 4 个字段，都需要从生成签名的后端接口返回
+              appId: res.appid,
+              timestamp: res.timestamp,
+              nonceStr: res.noncestr,
+              signature: res.signature,
+              jsApiList: [
+                // 声明需要使用的方法名
+                "getTriggerContext",
+                "sendMessageCard",
+              ],
+              //成功回调
+              onSuccess: (res) => {console.log(`config success`);},
+              //失败回调
+              onFail: (err) => {console.log(`config failed: ${JSON.stringify(err)}`);},
+            });
+            window.h5sdk.ready(() => {
+              // 从页面 URL 中获取 triggerCode
+              let launchQuery = new URLSearchParams(location.search).get(
+                "bdp_launch_query"
+              );
+              if (!launchQuery) {
+                console.log("bdp_launch_query not found in URL");
+                return;
+              }
+              launchQuery = JSON.parse(launchQuery);
+              const triggerCode = launchQuery.__trigger_id__;
+            });
+          }
+        });
+    })();
+      function sendFeishuMessage(text) {
+        // 从页面 URL 中获取 triggerCode
+        let launchQuery = new URLSearchParams(location.search).get("bdp_launch_query");
+        launchQuery = JSON.parse(launchQuery);
+        const triggerCode = launchQuery.__trigger_id__;
+        tt.sendMessageCard({
+          triggerCode: triggerCode,
+          cardContent: {
+            msg_type: 'interactive',
+            update_multi: false,
+            card: {
+              "elements": [{
+                "tag": "div",
+                "text": {
+                  "tag": "plain_text",
+                  "content": text,
+                }
+              }]
+            },
+          },
+          fail(res) {
+            console.log(res);
+          },
+        });
+      };
+  </script>
+</body>
+
+</html>
