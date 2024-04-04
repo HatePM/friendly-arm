@@ -46,7 +46,7 @@ def render_homepage(request: Request):
                     "trimContents": True,
                     "showCounter": True,
                     "minRows": 5,
-                    "maxLength": 100,
+                    "maxLength": 2000,
                     "placeholder": "请在此输入你想说的话",
                 },
             ],
